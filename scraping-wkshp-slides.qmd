@@ -1,0 +1,111 @@
+---
+title: "Web Scraping with Python & BeautifulSoup"
+author: "David Loeb"
+format: 
+  revealjs:
+    embed-resources: true
+    code-line-numbers: false
+eval: false
+echo: true
+engine: knitr
+---
+
+## How the internet works
+
+- Websites are basically just an HTML document
+- You send request to the website for its HTML
+- You receive it, and your browser turns the HTML into the final product we see
+
+## Scraping works the same
+
+- We send a request through Python to the site
+- It sends back its response, ie its HTML code
+- Now we have all the HTML as an object in Python
+- We then search and extract the text we want out of the HTML
+
+## Two Python scraping packages
+
+- BeautifulSoup (+ requests): simpler, great for quickly scraping small number of pages
+- Scrapy: more powerful but more complicated, best for “crawling” ie scraping tons of pages that link to one another
+- To keep it simple for now I’ll show you BS, but just a heads that I'm less familiar with it because I always use Scrapy
+
+## Scraping pt 1: Getting the HTML
+
+- The BS approach first uses the requests package to communicate with website
+- `requests.get(url)`: sends request to website and returns a `Response` object
+- `response.text`: extracts the HTML text from the `Response` obj
+- `BeautifulSoup(responsetxt, ‘lxml’)`: create a `BeautifulSoup` object from the HTML text, which you can use for locating and extracting the text data u want
+
+## How to locate text we want? Use structure of HTML code
+
+- HTML is a series of nested `elements`
+- Each `element` has a specific type, denoted by its `tag`
+- Elements also have `attributes` that further distinguish them from one another
+- Use these 3 things to locate the elements with data we want:
+  - Nested structure
+  - Element type
+  - Attributes
+
+## Nested structure
+
+Basic structure:
+
+```{html}
+<element1>
+  <element2>Content</element2>
+</element1>
+```
+
+Typically written top to bottom like this with indents to make the nested structure clear
+
+## Element types {.smaller}
+
+- Many element types, but just a handful of the most important ones you’ll typically encounter
+- `head` & `body`: separate sites into these two broad sections
+- `div`: general divider elements, separating sections within the head and body sections
+- `h1`: headers (and subheaders are `h2`, `h3`, etc)
+- `ol` & `ul`: ordered and unordered lists; have `li` elements within them containing each list entry
+- `table`: table element, with `tr` and `td` elements within them containing the table rows and table data respectively
+- `a`: elements containing links
+
+## Attributes
+
+- Many elements have attributes within their enclosing brackets (`<>`) that describe them further
+- Two most commonly used for locating
+  - `class`: identifies sets of elements that have similar purpose
+  - `id`: uniquely identifies elements
+- The other most important one is `href`, which contains links
+
+```{html}
+<a class=“page-link” id=“next-page” href=“site.com/sitepage2”>
+```
+
+## Use BeautifulSoup to locate elements
+
+- Call `.find()` / `.find_all()` methods on the BS object to locate specific elements
+  - Argument 1: element tag
+  - Argument 2 (optional): attribute
+
+```{python}
+bs_object.find_all(“article”, class_=“main-article”)
+```
+
+- The example above returns all article elements with the attribute `class="main-article"`
+- `.find()` would just return the first such element
+
+## Extract the text data
+
+- Once you’ve located the elements, use the `.get_text()` method to extract the content
+- Then you can use Python’s built in `open()` framework for saving files, to save as a csv or text file
+
+```{python}
+element_text = bs_object.find_all(article, class_=“main-article”).get_text()
+with open("filename.txt", "w") as file:
+  file.write(element_text)
+```
+
+## CSS and XPath locators
+
+- Sometimes you need to get more specific, like you only want the `article` elements contained within a specific `div` element
+- In this case we’d use CSS or XPath locators, HTML searching frameworks that take advantage of the nested structure
+- But I think it’s too much info for today!
